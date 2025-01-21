@@ -6,6 +6,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './dropdown-menu';
+import {LoadingSpinner} from './loading-spinner';
+import {Button} from './button';
 
 //props
 type ClassPickerProps = {
@@ -21,13 +23,17 @@ export function ClassPicker({
 }: ClassPickerProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <button className='btn btn-block'>
-          {selectedClass || 'Select a class'}
-        </button>
+      <DropdownMenuTrigger className='w-full'>
+        {!classes?.length ? (
+          <LoadingSpinner className='w-6 h-6' />
+        ) : (
+          <Button className='w-full' variant='outline'>
+            {selectedClass || 'Select a class'}
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {classes.map((c) => (
+        {classes?.map((c) => (
           <DropdownMenuItem key={c.id} onClick={() => onChange(c)}>
             {c.name}
           </DropdownMenuItem>

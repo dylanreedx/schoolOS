@@ -1,17 +1,19 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {useRouter} from 'next/navigation';
 import {ClassPicker} from './ui/class-picker';
+import {useQuery} from '@tanstack/react-query';
+import {classOptions} from '@/lib/options/class';
 
 export function StudySessionForm() {
+  const {data: classes} = useQuery(classOptions);
   const [subject, setSubject] = useState('');
   const [duration, setDuration] = useState('');
-  const [classes, setClasses] = useState<[]>([]);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,12 +31,6 @@ export function StudySessionForm() {
       router.refresh();
     }
   };
-
-  useEffect(() => {
-    fetch('/api/classes')
-      .then((res) => res.json())
-      .then((data) => setClasses(data));
-  }, []);
 
   return (
     <Card>
