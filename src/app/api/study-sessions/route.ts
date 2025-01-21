@@ -1,6 +1,8 @@
 import {NextResponse} from 'next/server';
 import {auth} from '@clerk/nextjs/server';
-import db from '@/lib/db';
+import {db} from '@/db';
+import {studySessionsTable} from '@/db/schema';
+import {eq} from 'drizzle-orm';
 
 export async function POST(req: Request) {
   const {userId} = await auth();
@@ -11,12 +13,17 @@ export async function POST(req: Request) {
   const {subject, duration} = await req.json();
   const date = new Date().toISOString().split('T')[0];
 
-  const stmt = db.prepare(
-    'INSERT INTO study_sessions (user_id, subject, duration, date) VALUES (?, ?, ?, ?)'
-  );
-  const result = stmt.run(userId, subject, duration, date);
+  const result = await db
+    .insert(studySessionsTable)
+    .values({
+      userId,
+      subject,
+      duration,
+      date,
+    })
+    .returning({insertedId: studySessionsTable.id});
 
-  return NextResponse.json({id: result.lastInsertRowid});
+  return NextResponse.json({id: result[0].insertedId});
 }
 
 export async function GET() {
@@ -25,10 +32,12 @@ export async function GET() {
     return new NextResponse('Unauthorized', {status: 401});
   }
 
-  const stmt = db.prepare(
-    'SELECT * FROM study_sessions WHERE user_id = ? ORDER BY date DESC LIMIT 28'
-  );
-  const sessions = stmt.all(userId);
+  const sessions = await db
+    .select()
+    .from(studySessionsTable)
+    .where(eq(studySessionsTable.userId, userId))
+    .orderBy(studySessionsTable.date)
+    .limit(28);
 
   return NextResponse.json(sessions);
 }
